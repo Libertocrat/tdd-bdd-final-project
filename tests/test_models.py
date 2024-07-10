@@ -249,3 +249,51 @@ class TestProductModel(unittest.TestCase):
         # category matches the expected category
         for product in products_by_category:
             self.assertEqual(product.category, category)
+
+    def test_find_by_price(self):
+        """It should Find Products by Price"""
+        products = ProductFactory.create_batch(10)
+        # Use a for loop to iterate over the products list and call
+        # the create() method on each product to save them to the database.
+        for product in products:
+            product.create()
+        # Retrieve the price of the first product in the products list.
+        price = products[0].price
+        # Use a list comprehension to filter the products having equal price
+        count = len([product for product in products if product.price == price])
+        # Call the find_by_price() method on the Product class to retrieve products
+        # from the database that have the specified price.
+        products_by_price = Product.find_by_price(str(price))
+        # Assert if the count of the found products matches the expected count.
+        self.assertEqual(products_by_price.count(), count)
+        # Use a for loop to iterate over the found products and assert that each product's
+        # price matches the expected price
+        for product in products_by_price:
+            self.assertEqual(product.price, price)
+
+    def test_a_product_deserialization(self):
+        """Should deserialize a Product from a dictionary"""
+        # Create a ProductFactory
+        test_product = ProductFactory()
+        test_dict = test_product.serialize()
+
+        # Assert that deserialization works
+        product = Product()
+        product.deserialize(test_dict)
+        self.assertEqual(product.name, test_product.name)
+
+        # Assert invalid availability exception
+        product_dict = test_dict
+        product_dict["available"] = "Not a boolean"
+        self.assertRaises(DataValidationError, product.deserialize, product_dict)
+
+        # Assert attribute error exception
+        product_dict = test_dict
+        product_dict["category"] = None
+        self.assertRaises(DataValidationError, product.deserialize, product_dict)
+
+        # Assert missing deserialization dict key
+        self.assertRaises(DataValidationError, product.deserialize, {"missing_key": 0})
+
+        # Assert invalid deserialization input type
+        self.assertRaises(DataValidationError, product.deserialize, "Not a valid dictionary")
