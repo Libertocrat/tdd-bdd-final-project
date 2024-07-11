@@ -189,6 +189,35 @@ class TestProductRoutes(TestCase):
         data = response.get_json()
         self.assertIn("doesn't exist", data["message"])
 
+    def test_update_product(self):
+        """It should Update an existing Product"""
+        # create a product to update
+        test_product = ProductFactory()
+        # send a self.client.post() request to the BASE_URL with a json payload of test_product.serialize()
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        # assert that the resp.status_code is status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # UPDATE THE PRODUCT
+        # get the data from resp.get_json() as new_product
+        new_product = response.get_json()
+        # change new_account["description"] to unknown
+        test_description = "Updated random description 6826BJXXASDLFI2"
+        new_product["description"] = test_description
+        # send a self.client.put() request to the BASE_URL with a json payload of new_product
+        response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
+        # assert that the resp.status_code is status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # get the data from resp.get_json() as updated_product
+        data = response.get_json()
+        # assert that the updated_product["description"] is whatever you changed it to
+        self.assertEqual(data["description"], test_description)
+
+        # ASSERT NOT FOUND
+        response = self.client.put(f"{BASE_URL}/0", json=new_product)
+        # assert that the resp.status_code is status.HTTP_404_NOT_FOUND
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     ######################################################################
     # Utility functions
     ######################################################################
