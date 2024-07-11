@@ -109,6 +109,26 @@ def create_products():
 #
 # PLACE YOUR CODE HERE TO READ A PRODUCT
 #
+@app.route("/products/<product_id>", methods=["GET"])
+def get_products(product_id):
+    """
+    Retrieve a single Product
+    This endpoint will return a Product based on it's id
+    """
+
+    product = Product.find(product_id)
+
+    # Check if product exists
+    if not product:
+        app.logger.error("Product ID not found in database.")
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Product with ID '{product_id}' doesn't exist in the database.",
+        )
+
+    # Send the product as a json
+    app.logger.info("Returning product: %s", product.name)
+    return product.serialize(), status.HTTP_200_OK
 
 ######################################################################
 # U P D A T E   A   P R O D U C T
